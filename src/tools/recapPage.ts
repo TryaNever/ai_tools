@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import type { ToolResult } from "../type";
 
 async function fetchData(url: string): Promise<string> {
   try {
@@ -19,12 +20,7 @@ function extractText(html: string) {
   return $("body").text().replace(/\s+/g, " ").trim();
 }
 
-type ToolResult = {
-  data: string | object | null;
-  source: string;
-  status: "success" | "error";
-  error?: string;
-};
+
 
 export default async function recapPage(
   linkPage: string,

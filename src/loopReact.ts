@@ -1,214 +1,206 @@
 import generatePlan from "./generatePlan";
-import * as tools from "./tools";
+import * as tools from "./tools/tools";
+import type { PipelineContext, ToolResult } from "./type";
 
 // ─────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────
 
-/**
- * Résultat standard retourné par chaque tool
- */
-type ToolResult = {
-  data: string | object | null;
-  source: string;
-  status: "success" | "error";
-  error?: string;
+
+
+type Instruction = {
+  tool: keyof typeof tools;
+  input?: Record<string, any>;
+  skill?: string;
 };
 
-/**
- * Contexte partagé entre les étapes.
- *
- * Exemple :
- * {
- *   recapPage: { data: "...", status: "success" },
- *   summarize: { data: "...", status: "success" }
- * }
- */
-type PipelineContext = Record<string, ToolResult>;
+// ─────────────────────────────────────────────
+// PLACEHOLDERS
+// ─────────────────────────────────────────────
 
-// ─────────────────────────────────────────────
-// REMPLACEMENT DES PLACEHOLDERS
-// ─────────────────────────────────────────────
+const PLACEHOLDER_REGEX =
+  /\{\{(\w+)\.(\w+)\}\}/g;
+
+function replaceStringPlaceholders(
+  value: string,
+  context: PipelineContext,
+) {
+  return value.replace(
+    PLACEHOLDER_REGEX,
+    (_, toolName, field) => {
+      const result = context[toolName];
+
+      if (!result) {
+        return `[MISSING:${toolName}]`;
+      }
+
+      const fieldValue = (result as Record<string, unknown>)[field];
+
+      if (fieldValue == null) {
+        return `[MISSING:${toolName}.${field}]`;
+      }
+
+      return typeof fieldValue === "string"
+        ? fieldValue
+        : JSON.stringify(fieldValue);
+    },
+  );
+}
 
 function resolvePlaceholders(
-  input: any,
+  value: any,
   context: PipelineContext,
 ): any {
-  if (typeof input === "string") {
-    return input.replace(
-      /\{\{(\w+)\.(\w+)\}\}/g,
-      (_match, toolName, field) => {
-        const toolResult = context[toolName];
-
-        // Tool introuvable
-        if (!toolResult) {
-          return `[MISSING:${toolName}]`;
-        }
-
-        // Champ introuvable
-        const value = (toolResult as any)[field];
-
-        if (value === undefined || value === null) {
-          return `[MISSING:${toolName}.${field}]`;
-        }
-
-        // Si string → retourne tel quel
-        if (typeof value === "string") {
-          return value;
-        }
-
-        // Sinon stringify l'objet
-        return JSON.stringify(value);
-      },
+  if (typeof value === "string") {
+    return replaceStringPlaceholders(
+      value,
+      context,
     );
   }
 
-  // ───────────────────────────────────────────
-  // CAS 2 : ARRAY
-  // ───────────────────────────────────────────
-  if (Array.isArray(input)) {
-    return input.map((item) =>
+  if (Array.isArray(value)) {
+    return value.map((item) =>
       resolvePlaceholders(item, context),
     );
   }
 
-  // ───────────────────────────────────────────
-  // CAS 3 : OBJECT
-  // ───────────────────────────────────────────
-  if (typeof input === "object" && input !== null) {
+  if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(input).map(([key, value]) => [
-        key,
-        resolvePlaceholders(value, context),
-      ]),
+      Object.entries(value).map(
+        ([key, val]) => [
+          key,
+          resolvePlaceholders(val, context),
+        ],
+      ),
     );
   }
 
-  // ───────────────────────────────────────────
-  // CAS 4 : PRIMITIF (number, boolean, etc.)
-  // ───────────────────────────────────────────
-  return input;
+  return value;
 }
 
-
 // ─────────────────────────────────────────────
-// EXÉCUTION D'UN TOOL
+// TOOLS
 // ─────────────────────────────────────────────
 
-async function executeTool(
-  instruction: any,
-  context: PipelineContext,
-): Promise<ToolResult> {
-  // Récupération de la fonction du tool
-  const toolFn =
-    tools[instruction.tool as keyof typeof tools];
+function getTool(
+  toolName: keyof typeof tools,
+) {
+  const tool = tools[toolName];
 
-  if (!toolFn) {
+  if (!tool) {
     throw new Error(
-      `Tool inconnu : "${instruction.tool}"`,
+      `Tool inconnu : "${toolName}"`,
     );
   }
 
-  // Remplace les placeholders {{...}}
-  const resolvedInput = resolvePlaceholders(
-    instruction.input ?? {},
+  return tool;
+}
+
+async function runTool(
+  instruction: Instruction,
+  context: PipelineContext,
+): Promise<ToolResult> {
+  const tool = getTool(instruction.tool);
+
+  const input = resolvePlaceholders(
+    {
+      ...instruction.input,
+      skill: instruction.skill,
+    },
     context,
   );
 
-  // On injecte aussi le contexte complet
-  const finalInput = {
-    ...resolvedInput,
-    _context:
-      Object.keys(context).length > 0
-        ? context
-        : undefined,
-  };
+  try {
+    const result = await tool({
+      ...input,
+      _context:
+        Object.keys(context).length > 0
+          ? context
+          : undefined,
+    });
 
-  // Appel du tool
-  const result: any =
-    (await toolFn(finalInput)) ??
-    ({
+    return (
+      result ?? {
+        data: null,
+        source: instruction.tool,
+        status: "error",
+        error: `${instruction.tool} n'a rien retourné`,
+      }
+    );
+  } catch (error: any) {
+    return {
       data: null,
       source: instruction.tool,
       status: "error",
       error:
-        `${instruction.tool} n'a rien retourné`,
-    } as const);
+        error?.message ??
+        "Erreur inconnue",
+    };
+  }
+}
+
+// ─────────────────────────────────────────────
+// PIPELINE
+// ─────────────────────────────────────────────
+
+async function executeStep(
+  instruction: Instruction,
+  context: PipelineContext,
+  index: number,
+  total: number,
+) {
+  console.log(
+    `\n▶ Step ${index + 1}/${total} — ${instruction.tool}`,
+  );
+
+  const result = await runTool(
+    instruction,
+    context,
+  );
+
+  context[instruction.tool] = result;
+
+  console.log(
+    `✅ ${instruction.tool} → ${result.status}`,
+  );
+
+  if (result.status === "error") {
+    console.warn(
+      `⚠️ ${result.error}`,
+    );
+  }
 
   return result;
 }
 
 // ─────────────────────────────────────────────
-// LOOP REACT
+// MAIN
 // ─────────────────────────────────────────────
 
 export default async function loopReact(
   command: string,
 ) {
-  // Import gardé pour conserver le comportement actuel
   await import("./tools/toolDefinition");
 
-  // ───────────────────────────────────────────
-  // 1. GÉNÉRATION DU PLAN
-  // ───────────────────────────────────────────
-
-  const instructions = await generatePlan(
-    command,
-  );
-
-  console.log(instructions);
-  
+  const instructions =
+    await generatePlan(command);
 
   console.log(
     "📋 Plan généré :",
     JSON.stringify(instructions, null, 2),
   );
 
-  // ───────────────────────────────────────────
-  // 2. CONTEXTE GLOBAL DU PIPELINE
-  // ───────────────────────────────────────────
-
   const context: PipelineContext = {};
 
-  // ───────────────────────────────────────────
-  // 3. EXÉCUTION DES ÉTAPES
-  // ───────────────────────────────────────────
-
-  for (
-    let index = 0;
-    index < instructions.length;
-    index++
-  ) {
-    const instruction = instructions[index];
-
-    console.log(
-      `\n▶ Step ${index + 1}/${
-        instructions.length
-      } — tool: ${instruction.tool}`,
+  for (let i = 0;i < instructions.length;i++) {
+    const result = await executeStep(
+      instructions[i],
+      context,
+      i,
+      instructions.length,
     );
 
-instruction.input = {
-  ...instruction.input,
-  skill: instruction.skill,
-};
-
-const toolResult = await executeTool(
-  instruction,
-  context,
-);
-
-    // Sauvegarde du résultat dans le contexte
-    context[instruction.tool] = toolResult;
-
-    // Logs
-    console.log(
-      `✅ [${instruction.tool}] status: ${toolResult.status}`,
-    );
-
-    if (toolResult.status === "error") {
-      console.warn(
-        `⚠️ [${instruction.tool}] error: ${toolResult.error}`,
-      );
+    if (result.status === "error") {
       break;
     }
   }

@@ -35,8 +35,22 @@ export default function parseAIResponse(content: string) {
     };
   }
 
+type StepFormat = {
+  tool?: string;
+  name?: string;
+
+  input?: Record<string, unknown>;
+
+  params?: {
+    input?: string | Record<string, unknown>;
+    [key: string]: unknown;
+  };
+};
+
   const normalizedInstructions = instructions.map(
-    (step: any) => {
+    (step: StepFormat) => {
+      console.log(step);
+      
       if (step?.tool && step?.input !== undefined) {
         return { tool: step.tool, input: step.input };
       }

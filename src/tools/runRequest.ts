@@ -1,4 +1,5 @@
 import fetchIa from "../fetchIa";
+import type { ToolResult } from "../type";
 
 // ─────────────────────────────────────────────
 // Types
@@ -8,13 +9,6 @@ type RunRequestInput = {
   query: string;
   /** Injecté automatiquement par loopReact — contient les résultats des steps précédents */
   _context?: Record<string, ToolResult>;
-};
-
-type ToolResult = {
-  data: string | object | null;
-  source: string;
-  status: "success" | "error";
-  error?: string;
 };
 
 // ─────────────────────────────────────────────
