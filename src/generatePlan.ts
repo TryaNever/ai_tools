@@ -15,7 +15,9 @@ export default async function generatePlan(command: string) {
     },
     {
       role: "system",
-      content: "MEMORY:\n" + JSON.stringify(memory.slice(-20), null, 2),
+      content:
+        "Historique de la conversation:\n" +
+        JSON.stringify(memory.slice(-20), null, 2),
     },
     {
       role: "user",
@@ -23,6 +25,7 @@ export default async function generatePlan(command: string) {
     },
   ]);
   // Compatibilité selon différents formats de réponse IA
+  console.log(JSON.stringify(memory.slice(-20), null, 2));
   const rawContent =
     response?.choices?.[0]?.message?.content ??
     response?.message?.content ??

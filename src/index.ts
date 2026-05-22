@@ -1,3 +1,3 @@
 import loopReact from "./loopReact";
 
-loopReact(`parle de la météo a paris`);
+loopReact(`quelle a été la dernière chose que nous avont parlé `);

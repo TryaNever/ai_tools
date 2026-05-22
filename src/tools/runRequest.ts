@@ -20,7 +20,9 @@ export default async function runRequest(
 ): Promise<ToolResult> {
   // Normalisation défensive de l'input
   const rawQuery =
-    typeof input === "string" ? input : (input?.query ?? input?.input ?? null);
+    typeof input === "string"
+      ? input
+      : (input?.query ?? input?.input ?? input?.content ?? null);
 
   const skill = input?.skill;
 

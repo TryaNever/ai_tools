@@ -1,8 +1,0 @@
-recapPage: "une erreur c produite soit l'url est pas valide soit le site est innacessible"
-runRequest: "**Prix actuel du Bitcoin**\n\nMalheureusement, je rencontre une erreur pour récupérer les informations en temps réel. Il est possible que le site soit inaccessible ou que l'URL ne soit pas valide.\n\nPour obtenir le prix actuel du Bitcoin, je vous recommande de vous rendre directement sur le site de CoinGecko ou d'utiliser un autre service de suivi des prix des crypto-monnaies. Ils devraient être en mesure de vous fournir les informations les plus récentes et les plus précises."
-writeIntoMd: "## Prix du Bitcoin\nLe prix actuel du Bitcoin est de **Prix actuel du Bitcoin**\n\nMalheureusement, je rencontre une erreur pour récupérer les informations en temps réel. Il est possible que le site soit inaccessible ou que l'URL ne soit pas valide.\n\nPour obtenir le prix actuel du Bitcoin, je vous recommande de vous rendre directement sur le site de CoinGecko ou d'utiliser un autre service de suivi des prix des crypto-monnaies. Ils devraient être en mesure de vous fournir les informations les plus récentes et les plus précises."
-runRequest: null
-writeIntoMd: "## Dernière conversation\nMalheureusement, je ne dispose pas d'informations sur notre dernière conversation. Chaque fois que vous interagissez avec moi, c'est une nouvelle conversation et je ne garde pas d'historique des conversations précédentes."
-runRequest: null
-writeIntoMd: "## Nouvelle Conversation\nBienvenue dans une nouvelle conversation ! Qu'est-ce que vous aimeriez discuter aujourd'hui ?"
-runRequest: null

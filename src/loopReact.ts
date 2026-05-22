@@ -170,5 +170,18 @@ export default async function loopReact(command: string) {
 
   console.log("\n🎉 Pipeline terminé.");
 
+  // Log du résumé dans le README
+  const timestamp = new Date().toLocaleString("fr-FR");
+  const summary = `## 🔄 ${timestamp}\n**Commande**: ${command}\n${Object.entries(
+    context,
+  )
+    .map(
+      ([tool, result]) =>
+        `- **${tool}**: ${result?.status === "success" ? "✅" : "❌"} ${result?.status === "error" ? result?.error : ""}`,
+    )
+    .join("\n")}`;
+
+  await tools.writeIntoMd({ content: summary });
+
   return context;
 }
