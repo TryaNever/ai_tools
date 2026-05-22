@@ -1,6 +1,9 @@
 export default function parseAIResponse(content: string) {
   const normalize = (text: string) =>
-    text.replace(/```json/g, "").replace(/```/g, "").trim();
+    text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
 
   const tryParse = (text: string) => {
     try {
@@ -35,34 +38,30 @@ export default function parseAIResponse(content: string) {
     };
   }
 
-type StepFormat = {
-  tool?: string;
-  name?: string;
+  type StepFormat = {
+    tool?: string;
+    name?: string;
 
-  input?: Record<string, unknown>;
+    input?: Record<string, unknown>;
 
-  params?: {
-    input?: string | Record<string, unknown>;
-    [key: string]: unknown;
+    params?: {
+      input?: string | Record<string, unknown>;
+      [key: string]: unknown;
+    };
   };
-};
 
-  const normalizedInstructions = instructions.map(
-    (step: StepFormat) => {
-      console.log(step);
-      
-      if (step?.tool && step?.input !== undefined) {
-        return { tool: step.tool, input: step.input };
-      }
-      if (step?.tool && step?.params !== undefined) {
-        return { tool: step.tool, input: step.params };
-      }
-      if (step?.name && step?.params !== undefined) {
-        return { tool: step.name, input: step.params };
-      }
-      return step;
-    },
-  );
+  const normalizedInstructions = instructions.map((step: StepFormat) => {
+    if (step?.tool && step?.input !== undefined) {
+      return { tool: step.tool, input: step.input };
+    }
+    if (step?.tool && step?.params !== undefined) {
+      return { tool: step.tool, input: step.params };
+    }
+    if (step?.name && step?.params !== undefined) {
+      return { tool: step.name, input: step.params };
+    }
+    return step;
+  });
 
   return {
     instructions: normalizedInstructions,

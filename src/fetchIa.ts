@@ -1,22 +1,21 @@
+import CONFIG from "../config";
+
 export default async function fetchIa(
   model: string,
   messages: Array<{ role: string; content: string }>,
 ) {
   try {
-    const res = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-        }),
+    const res = await fetch(CONFIG.API.GROQ_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        model,
+        messages,
+      }),
+    });
 
     const response = await res.json();
 
@@ -32,9 +31,7 @@ export default async function fetchIa(
         errorMessage.toLowerCase().includes("tokens") ||
         res.status === 429
       ) {
-        throw new Error(
-          "Limite de tokens atteinte ou quota dépassé.",
-        );
+        throw new Error("Limite de tokens atteinte ou quota dépassé.");
       }
 
       throw new Error(errorMessage);

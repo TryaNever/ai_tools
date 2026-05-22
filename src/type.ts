@@ -5,7 +5,7 @@ export type ToolResult = {
   error?: string;
 };
 
-export type PipelineContext = Record<
-  string,
-  ToolResult
->;
+export type PipelineContext = {
+  memory: Array<{ role: "user" | "assistant"; content: string }>;
+  [key: string]: any;
+};

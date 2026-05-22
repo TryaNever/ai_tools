@@ -9,30 +9,33 @@ const toolDefinition: ToolDefinition[] = [
   {
     name: "recapPage",
     file: "recapPage.ts",
-    description: "Récapitule le contenu d'une page web à partir de son URL.",
+    description:
+      "Extrait, nettoie et résume le contenu textuel d'une page web à partir d'une URL. Supprime le HTML inutile (scripts, styles, navigation) et retourne uniquement le texte exploitable.",
     params: {
       linkPage:
-        "URL complète de la page à analyser et valide si url inconnu faire une rapport avec writeIntoMd",
+        "URL STRICTE et obligatoire. Doit être une chaîne valide commençant par http:// ou https://. Exemple: https://example.com/article. Ne jamais envoyer autre chose qu'une URL.",
     },
   },
   {
     name: "runRequest",
     file: "runRequest.ts",
     description:
-      "Exécute une requête simple, répond à une question ou rédige un texte.",
+      "Exécute une requête IA autonome pour répondre, analyser ou générer du contenu structuré. Utilisé pour les questions générales, la génération de texte ou l'enrichissement d'informations.",
     params: {
-      input:
-        "Question claire ou instruction précise à exécuter",
-      skill: "Optionnel : nom d'une compétence spécifique à activer pour cette requête (ex: marseillais, verlan, etc.) il est visible dans skillDefinition et si tu vois que le prompt ce rapproche de c instructuction ajoute son name dans skillDefinition pour que je puisse l'utiliser automatiquement dans le futur",
+      query:
+        "Question ou instruction claire sous forme de texte. DOIT être une string unique, pas un objet. Exemple: 'Explique la photosynthèse simplement'.",
+      skill:
+        "Optionnel. Nom d'une compétence spécialisée définie dans skillDefinition. Utilisé pour modifier le style ou le ton de la réponse (ex: marseillais, verlan, formel).",
     },
   },
   {
     name: "writeIntoMd",
     file: "writeIntoMd.ts",
     description:
-      "Écrit du contenu dans un fichier Markdown. Le contenu doit toujours contenir des titres formatés avec ##.",
+      "Écrit du contenu structuré dans un fichier Markdown. Toujours utilisé en dernier step du pipeline pour sauvegarder le résultat final.",
     params: {
-      content: "Contenu Markdown brut à écrire",
+      content:
+        "Texte Markdown complet. DOIT inclure des titres formatés avec ##. Peut inclure des sections, listes et structure claire. Exemple: '## Résultat\nContenu ici...'",
     },
   },
 ];

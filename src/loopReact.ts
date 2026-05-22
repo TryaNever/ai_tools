@@ -1,12 +1,11 @@
 import generatePlan from "./generatePlan";
+import saveMemory from "./memory/saveMemory";
 import * as tools from "./tools/tools";
 import type { PipelineContext, ToolResult } from "./type";
 
 // ─────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────
-
-
 
 type Instruction = {
   tool: keyof typeof tools;
@@ -18,60 +17,46 @@ type Instruction = {
 // PLACEHOLDERS
 // ─────────────────────────────────────────────
 
-const PLACEHOLDER_REGEX =
-  /\{\{(\w+)\.(\w+)\}\}/g;
+const PLACEHOLDER_REGEX = /\{\{(\w+)\.(\w+)\}\}/g;
 
-function replaceStringPlaceholders(
-  value: string,
-  context: PipelineContext,
-) {
-  return value.replace(
-    PLACEHOLDER_REGEX,
-    (_, toolName, field) => {
-      const result = context[toolName];
+function replaceStringPlaceholders(value: string, context: PipelineContext) {
+  return value.replace(PLACEHOLDER_REGEX, (_, toolName, field) => {
+    const result = context[toolName];
 
-      if (!result) {
-        return `[MISSING:${toolName}]`;
-      }
+    if (!result) {
+      return `[MISSING:${toolName}]`;
+    }
 
-      const fieldValue = (result as Record<string, unknown>)[field];
+    const fieldValue = (result as Record<string, unknown>)[field];
 
-      if (fieldValue == null) {
-        return `[MISSING:${toolName}.${field}]`;
-      }
+    if (fieldValue == null) {
+      return `[MISSING:${toolName}.${field}]`;
+    }
 
-      return typeof fieldValue === "string"
-        ? fieldValue
-        : JSON.stringify(fieldValue);
-    },
-  );
+    return typeof fieldValue === "string"
+      ? fieldValue
+      : JSON.stringify(fieldValue);
+  });
 }
 
 function resolvePlaceholders(
-  value: any,
+  value: unknown,
   context: PipelineContext,
-): any {
+): unknown {
   if (typeof value === "string") {
-    return replaceStringPlaceholders(
-      value,
-      context,
-    );
+    return replaceStringPlaceholders(value, context);
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) =>
-      resolvePlaceholders(item, context),
-    );
+    return value.map((item) => resolvePlaceholders(item, context));
   }
 
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value).map(
-        ([key, val]) => [
-          key,
-          resolvePlaceholders(val, context),
-        ],
-      ),
+      Object.entries(value).map(([key, val]) => [
+        key,
+        resolvePlaceholders(val, context),
+      ]),
     );
   }
 
@@ -82,15 +67,11 @@ function resolvePlaceholders(
 // TOOLS
 // ─────────────────────────────────────────────
 
-function getTool(
-  toolName: keyof typeof tools,
-) {
+function getTool(toolName: keyof typeof tools) {
   const tool = tools[toolName];
 
   if (!tool) {
-    throw new Error(
-      `Tool inconnu : "${toolName}"`,
-    );
+    throw new Error(`Tool inconnu : "${toolName}"`);
   }
 
   return tool;
@@ -113,10 +94,7 @@ async function runTool(
   try {
     const result = await tool({
       ...input,
-      _context:
-        Object.keys(context).length > 0
-          ? context
-          : undefined,
+      _context: Object.keys(context).length > 0 ? context : undefined,
     });
 
     return (
@@ -127,14 +105,12 @@ async function runTool(
         error: `${instruction.tool} n'a rien retourné`,
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       data: null,
       source: instruction.tool,
       status: "error",
-      error:
-        error?.message ??
-        "Erreur inconnue",
+      error: error?.message ?? "Erreur inconnue",
     };
   }
 }
@@ -149,25 +125,18 @@ async function executeStep(
   index: number,
   total: number,
 ) {
-  console.log(
-    `\n▶ Step ${index + 1}/${total} — ${instruction.tool}`,
-  );
+  console.log(`\n▶ Step ${index + 1}/${total} — ${instruction.tool}`);
 
-  const result = await runTool(
-    instruction,
-    context,
-  );
+  const result = await runTool(instruction, context);
+
+  await saveMemory(`${instruction.tool}: ${JSON.stringify(result.data)}`);
 
   context[instruction.tool] = result;
 
-  console.log(
-    `✅ ${instruction.tool} → ${result.status}`,
-  );
+  console.log(`✅ ${instruction.tool} → ${result.status}`);
 
   if (result.status === "error") {
-    console.warn(
-      `⚠️ ${result.error}`,
-    );
+    console.warn(`⚠️ ${result.error}`);
   }
 
   return result;
@@ -177,22 +146,16 @@ async function executeStep(
 // MAIN
 // ─────────────────────────────────────────────
 
-export default async function loopReact(
-  command: string,
-) {
+export default async function loopReact(command: string) {
   await import("./tools/toolDefinition");
 
-  const instructions =
-    await generatePlan(command);
+  const instructions = await generatePlan(command);
 
-  console.log(
-    "📋 Plan généré :",
-    JSON.stringify(instructions, null, 2),
-  );
+  console.log("📋 Plan généré :", JSON.stringify(instructions, null, 2));
 
   const context: PipelineContext = {};
 
-  for (let i = 0;i < instructions.length;i++) {
+  for (let i = 0; i < instructions.length; i++) {
     const result = await executeStep(
       instructions[i],
       context,

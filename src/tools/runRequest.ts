@@ -1,15 +1,15 @@
-import fetchIa from "../fetchIa";
-import type { ToolResult } from "../type";
+import fetchWithRetry from "../fetchIaWithRetry";
+import type { PipelineContext, ToolResult } from "../type";
 
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
 
-type RunRequestInput = {
+interface RunRequestInput {
   query: string;
-  /** Injecté automatiquement par loopReact — contient les résultats des steps précédents */
-  _context?: Record<string, ToolResult>;
-};
+  skill?: string;
+  _context?: PipelineContext;
+}
 
 // ─────────────────────────────────────────────
 // runRequest
@@ -19,9 +19,8 @@ export default async function runRequest(
   input: RunRequestInput & { skill?: string },
 ): Promise<ToolResult> {
   // Normalisation défensive de l'input
-  const rawQuery = typeof input === "string"
-    ? input
-    : input?.query ?? input?.input ?? null;
+  const rawQuery =
+    typeof input === "string" ? input : (input?.query ?? input?.input ?? null);
 
   const skill = input?.skill;
 
@@ -33,7 +32,7 @@ export default async function runRequest(
       skillInstruction =
         skillModule?.default ??
         `Utilise la compétence "${skill}" pour traiter la requête.`;
-    } catch (err: any) {
+    } catch (err: unknown) {
       skillInstruction = `Utilise la compétence "${skill}" pour traiter la requête.`;
     }
   }
@@ -48,6 +47,9 @@ export default async function runRequest(
   }
 
   // Construction du contexte des steps précédents
+
+  const modelIa = process.env.AI_MODEL || "llama-3.3-70b-versatile";
+
   const contextBlock =
     input._context && Object.keys(input._context).length > 0
       ? `\n\n---\nDONNÉES DES ÉTAPES PRÉCÉDENTES (utilise-les si pertinent) :\n${JSON.stringify(
@@ -58,7 +60,7 @@ export default async function runRequest(
       : "";
 
   try {
-    const response = await fetchIa("llama-3.3-70b-versatile", [
+    const response = await fetchWithRetry(modelIa, [
       {
         role: "system",
         content: ` ${skillInstruction} .Tu es un assistant expert chargé de traiter des requêtes et de produire du contenu clair, factuel et bien structuré.
@@ -91,7 +93,7 @@ et essaye de mieux stylisé tes réponses pour que ce soit plus agréable à lir
       source: "runRequest",
       status: "success",
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       data: null,
       source: "runRequest",
