@@ -213,3 +213,76 @@ La dernière chose que nous avons discutée était le prix du Bitcoin et les err
 ## 🔄 22/05/2026 15:30:28
 **Commande**: quelle a été la dernière chose que nous avont parlé 
 - **writeIntoMd**: ✅ 
+
+
+## CV Fictif
+
+### Description
+Le personnage de fiction s'appelle Jean-Luc Picard, il est un capitaine de vaisseau spatial dans la flotte de Starfleet. Il a une grande expérience dans le domaine de l'exploration spatiale et de la diplomatie intergalactique.
+
+### Expériences Professionnelles
+* Capitaine du vaisseau spatial USS Enterprise (2364-2371)
+* Diplomate intergalactique pour la Fédération des Planètes Unies (2371-2375)
+* Professeur à l'Académie de Starfleet (2375-2380)
+
+### Compétences
+* Exploration spatiale
+* Diplomatie intergalactique
+* Stratégie militaire
+* Leadership
+* Communication interpersonnelle
+
+
+## 🔄 22/05/2026 15:52:24
+**Commande**: genere un cv fictif pour un personnage de fiction, avec des expériences professionnelles, compétences et une description.
+- **runRequest**: ✅ 
+- **writeIntoMd**: ✅ 
+
+
+## CV de Personnage de Fiction
+
+### Description
+
+Le personnage de fiction est un héros audacieux et courageux, avec une passion pour l'aventure et la découverte. Il possède une grande intelligence et une capacité à résoudre des problèmes complexes.
+
+### Expériences Professionnelles
+
+*   **Aventurier** (2010-2015)
+    *   Exploré des ruines anciennes et découvert des trésors cachés
+    *   Combat contre des créatures mythiques et sauvé des villages en danger
+    *   Développé des compétences en navigation, en combat et en stratégie
+*   **Chef d'équipe** (2015-2020)
+    *   Mené une équipe de aventuriers dans des missions dangereuses
+    *   Pris des décisions stratégiques pour assurer la réussite de la mission
+    *   Développé des compétences en leadership et en gestion d'équipe
+
+### Compétences
+
+*   **Combat** : expert en combat au corps à corps et en utilisation d'armes
+*   **Navigation** : capable de naviguer dans des environnements inconnus et de trouver des chemins secrets
+*   **Stratégie** : capable de développer des plans pour atteindre des objectifs complexes
+*   **Leadership** : capable de mener une équipe et de prendre des décisions stratégiques
+
+### Éducation
+
+*   **École d'aventure** (2005-2010)
+    *   Étudié les arts de l'aventure et de la découverte
+    *   Développé des compétences en combat, en navigation et en stratégie
+
+
+## 🔄 22/05/2026 15:53:44
+**Commande**: genere un cv fictif pour un personnage de fiction, avec des expériences professionnelles, compétences et une description.
+- **runRequest**: ✅ 
+- **writeIntoMd**: ✅ 
+
+
+## 🔄 22/05/2026 15:54:48
+**Commande**: genere un cv fictif pour un personnage de fiction, avec des expériences professionnelles, compétences et une description. EN PDF
+- **runRequest**: ✅ 
+- **pdfWriter**: ❌ Erreur inconnue dans le code IA
+
+
+## 🔄 22/05/2026 15:55:41
+**Commande**: genere un cv fictif pour un personnage de fiction, avec des expériences professionnelles, compétences et une description. EN PDF
+- **runRequest**: ✅ 
+- **pdfWriter**: ❌ Erreur inconnue dans le code IA
