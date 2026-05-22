@@ -20,6 +20,11 @@ const toolDefinition: ToolDefinition[] = [
     file: "runRequest.ts",
     description:
       "Exécute une requête simple, répond à une question ou rédige un texte.",
+    params: {
+      input:
+        "Question claire ou instruction précise à exécuter",
+      skill: "Optionnel : nom d'une compétence spécifique à activer pour cette requête (ex: marseillais, verlan, etc.) il est visible dans skillDefinition et si tu vois que le prompt ce rapproche de c instructuction ajoute son name dans skillDefinition pour que je puisse l'utiliser automatiquement dans le futur",
+    },
   },
   {
     name: "writeIntoMd",

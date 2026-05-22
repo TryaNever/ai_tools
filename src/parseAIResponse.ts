@@ -1,34 +1,57 @@
 export default function parseAIResponse(content: string) {
-  try {
-    const cleaned = content
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
+  const normalize = (text: string) =>
+    text.replace(/```json/g, "").replace(/```/g, "").trim();
 
-    const parsed = JSON.parse(cleaned);
+  const tryParse = (text: string) => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  };
 
-    // L'IA peut retourner un array directement OU { instructions: [...] }
-    const instructions = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed?.instructions)
-        ? parsed.instructions
+  const cleaned = normalize(content);
+  let parsed = tryParse(cleaned);
+
+  if (!parsed) {
+    const jsonMatch = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    if (jsonMatch) {
+      parsed = tryParse(jsonMatch[0]);
+    }
+  }
+
+  const instructions = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed?.instructions)
+      ? parsed.instructions
+      : Array.isArray(parsed?.steps)
+        ? parsed.steps
         : null;
 
-    if (!instructions || instructions.length === 0) {
-      return {
-        instructions: [],
-        success: { status: false, message: "Invalid AI format" },
-      };
-    }
-
-    return {
-      instructions,
-      success: { status: true, message: "OK" },
-    };
-  } catch (e) {
+  if (!instructions || instructions.length === 0) {
     return {
       instructions: [],
-      success: { status: false, message: "JSON parsing failed" },
+      success: { status: false, message: "Invalid AI format" },
     };
   }
+
+  const normalizedInstructions = instructions.map(
+    (step: any) => {
+      if (step?.tool && step?.input !== undefined) {
+        return { tool: step.tool, input: step.input };
+      }
+      if (step?.tool && step?.params !== undefined) {
+        return { tool: step.tool, input: step.params };
+      }
+      if (step?.name && step?.params !== undefined) {
+        return { tool: step.name, input: step.params };
+      }
+      return step;
+    },
+  );
+
+  return {
+    instructions: normalizedInstructions,
+    success: { status: true, message: "OK" },
+  };
 }

@@ -22,10 +22,27 @@ type ToolResult = {
 // ─────────────────────────────────────────────
 
 export default async function runRequest(
-  input: RunRequestInput,
+  input: RunRequestInput & { skill?: string },
 ): Promise<ToolResult> {
   // Normalisation défensive de l'input
-  const rawQuery = typeof input === "string" ? input : (input?.query ?? null);
+  const rawQuery = typeof input === "string"
+    ? input
+    : input?.query ?? input?.input ?? null;
+
+  const skill = input?.skill;
+
+  let skillInstruction = "";
+
+  if (skill) {
+    try {
+      const skillModule = await import(`../skills/${skill}`);
+      skillInstruction =
+        skillModule?.default ??
+        `Utilise la compétence "${skill}" pour traiter la requête.`;
+    } catch (err: any) {
+      skillInstruction = `Utilise la compétence "${skill}" pour traiter la requête.`;
+    }
+  }
 
   if (!rawQuery || typeof rawQuery !== "string" || !rawQuery.trim()) {
     return {
@@ -50,9 +67,10 @@ export default async function runRequest(
     const response = await fetchIa("llama-3.3-70b-versatile", [
       {
         role: "system",
-        content: `Tu es un assistant expert chargé de traiter des requêtes et de produire du contenu clair, factuel et bien structuré.
+        content: ` ${skillInstruction} .Tu es un assistant expert chargé de traiter des requêtes et de produire du contenu clair, factuel et bien structuré.
 Tu réponds directement à la demande, sans introduction inutile.
-Tu utilises les données des étapes précédentes si elles sont disponibles et pertinentes.${contextBlock}`,
+Tu utilises les données des étapes précédentes si elles sont disponibles et pertinentes.${contextBlock} ne parle jamais du code interne si tu vois une erreur dit qu'il y a une erreur mais ne parle jamais du code interne
+et essaye de mieux stylisé tes réponses pour que ce soit plus agréable à lire.`,
       },
       {
         role: "user",

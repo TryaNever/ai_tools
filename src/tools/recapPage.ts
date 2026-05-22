@@ -19,8 +19,22 @@ function extractText(html: string) {
   return $("body").text().replace(/\s+/g, " ").trim();
 }
 
-export default async function recapPage(linkPage: string) {
+type ToolResult = {
+  data: string | object | null;
+  source: string;
+  status: "success" | "error";
+  error?: string;
+};
+
+export default async function recapPage(
+  linkPage: string,
+): Promise<ToolResult> {
   const dataBrut = await fetchData(linkPage);
   const textOnly = extractText(dataBrut);
-  return textOnly.slice(0, 1000);
+
+  return {
+    data: textOnly.slice(0, 1000),
+    source: "recapPage",
+    status: "success",
+  };
 }
