@@ -45,39 +45,54 @@ const toolDefinition: ToolDefinition[] = [
       "Exécute dynamiquement du code JavaScript généré par l'IA dans un environnement sandbox sécurisé. Peut être utilisé pour générer des PDF, transformer des données, faire des calculs complexes ou automatiser des traitements. Le code est exécuté dans une VM isolée avec des objets contrôlés.",
     params: {
       code: `
-Code JavaScript STRICTEMENT valide à exécuter.
-Le code doit être autonome et directement exécutable.
-Le code peut utiliser uniquement les objets exposés dans le sandbox.
+Génère uniquement du JavaScript valide exécutable dans une sandbox sécurisée.
 
-Variables disponibles dans le sandbox :
+OBJECTIF :
+Créer un PDF propre, lisible et bien structuré.
+
+CONTRAINTES :
+- Retourner uniquement du JavaScript brut
+- Aucun markdown
+- Aucun texte explicatif
+- Aucun import/export/require
+- Aucun accès à process, fs, Bun, global ou window
+- Aucun code dangereux ou infini
+- Toujours terminer par un return final
+
+VARIABLES DISPONIBLES :
 - pdfDoc
 - font
 - rgb
 - console
 
-Le code peut :
+CAPACITÉS AUTORISÉES :
 - créer des pages PDF
 - écrire du texte
-- retourner une valeur
+- styliser le texte
+- organiser le contenu
+- créer plusieurs sections
+- créer plusieurs pages si nécessaire
 
-Le code doit utiliser 'return' pour retourner un résultat final.
+RÈGLES PDF :
+- Toujours créer au moins une page
+- Toujours garder une mise en page lisible
+- Toujours gérer les espacements verticaux correctement
+- Éviter tout chevauchement de texte
+- Utiliser maxWidth pour les longs paragraphes
+- Utiliser lineHeight pour les textes multilignes
+- Le texte ne doit jamais sortir de la page
+- Si le contenu devient trop long, créer une nouvelle page
+- Ne jamais utiliser de syntaxe Markdown dans le PDF
 
-Exemple valide :
+VALIDATION :
+- Vérifier que le PDF contient du contenu
+- Vérifier que le PDF peut être sauvegardé correctement
 
-const page = pdfDoc.addPage([600, 800]);
-
-page.drawText("Bonjour PDF", {
-  x: 50,
-  y: 750,
-  size: 20,
-  font,
-});
-
-et une fois fait reverifie que le PDF est bien généré et sauvegardé, si c'est le cas
-
+SUCCÈS :
 return "PDF généré avec succès";
 
-
+ERREUR :
+throw new Error("Erreur lors de la génération du PDF");
 `,
     },
   },

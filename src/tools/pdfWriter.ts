@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 export default async function pdfWriter(code: string) {
+  console.log(code);
   // ─────────────────────────────────────────────
   // DOSSIER PDF
   // ─────────────────────────────────────────────
